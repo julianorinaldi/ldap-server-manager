@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  openldap:
+    image: bitnami/openldap:latest
+    container_name: openldap
+    ports:
+      - '1389:1389'
+      - '1636:1636'
+    environment:
+      - LDAP_ROOT=dc=example,dc=com
+      - LDAP_ADMIN_DN=cn=admin,dc=example,dc=com
+      - LDAP_ADMIN_USERNAME=admin
+      - LDAP_ADMIN_PASSWORD=admin@123
+      - LDAP_USERS=euax,wmsaude
+      - LDAP_PASSWORDS=euax@123,wmsaude@123
+      #- LDAP_LOGLEVEL=-1
+    volumes:
+      - ./volumes/openldap:/bitnami/openldap
+    networks:
+      - my-network
+
+  phpldapadmin:
+    image: leenooks/phpldapadmin:2.0.0-dev
+    container_name: phpldapadmin
+    environment:
+      - APP_KEY="base64:oOvBcyc2B936ONUxnz5CUb6brgM59X74U7o8mYNMwjw="
+      - APP_URL="http://localhost:8001"
+      - CACHE_DRIVER="memcached"
+      - LDAP_CACHE=true
+      - MEMCACHED_START=true
+      - APP_TIMEZONE=America/Sao_Paulo
+      - LDAP_BASE_DN=dc=example,dc=com
+      - LDAP_HOST=openldap
+      - LDAP_PORT=1389
+      - LDAP_USERNAME=cn=admin,dc=example,dc=com
+      - LDAP_PASSWORD=admin@123
+    ports:
+      - "8001:80"
+    depends_on:
+      - openldap
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
